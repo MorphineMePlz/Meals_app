@@ -1,17 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:meals_app/data/dummy_data.dart';
+import 'package:meals_app/screens/meals.dart';
 import 'package:meals_app/widgets/category_grid_item.dart';
 
+import '../models/category.dart';
+import '../models/meal.dart';
+
 class Categories extends StatelessWidget {
-  const Categories({super.key});
+  const Categories({super.key, required this.onToggleFavorite});
+
+  final void Function(Meal meal) onToggleFavorite;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pick your category'),
-      ),
-      body: GridView(
+    void _selectCategory(BuildContext context, Category category) {
+      final filteredMeals = dummyMeals
+          .where((meal) => meal.categories.contains(category.id))
+          .toList();
+
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (ctx) => MealsScreen(
+                onToggleFavorite: onToggleFavorite,
+                title: category.title,
+                meals: filteredMeals,
+              )));
+    }
+
+    return SafeArea(
+      child: GridView(
         padding: const EdgeInsets.all(24),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
@@ -21,6 +37,9 @@ class Categories extends StatelessWidget {
         children: [
           for (final category in availableCategories)
             CategoryGridItem(
+              onSelectCategory: () {
+                _selectCategory(context, category);
+              },
               category: category,
             )
         ],
